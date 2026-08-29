@@ -51,7 +51,7 @@ pub const GameConfig = struct {
             .gameOverFontSize = 50,
 
             .invaderRows = 5,
-            .invaderCols = 1,
+            .invaderCols = 10,
             .invaderWidth = 40,
             .invaderHeight = 20,
             .invaderSpace = 10,

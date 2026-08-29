@@ -115,7 +115,9 @@ pub fn main() void {
                         continue;
                     }
 
-                    if (player.getRect().intersect(invader.getRect()) or invader.y >= @as(f32, @floatFromInt(rl.getScreenHeight()))) {
+                    if (player.getRect().intersect(invader.getRect()) or
+                        invader.y >= @as(f32, @floatFromInt(rl.getScreenHeight())) - gc.padding)
+                    {
                         game_lost = true;
                         break;
                     }
