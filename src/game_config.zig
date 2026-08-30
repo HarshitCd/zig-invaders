@@ -9,13 +9,18 @@ pub const GameConfig = struct {
     playerHeight: f32,
     playerWidth: f32,
 
+    maxBullets: i32,
     bulletWidth: f32,
     bulletHeight: f32,
+
+    enemyBulletChance: i32,
+    enemyBulletDelay: i32,
+    enemyBulletWidth: f32,
+    enemyBulletHeight: f32,
 
     gameOverText: [:0]const u8,
     gameOverFontSize: i32,
 
-    maxBullets: i32,
     invaderRows: i32,
     invaderCols: i32,
     invaderWidth: f32,
@@ -48,6 +53,11 @@ pub const GameConfig = struct {
             .bulletWidth = 8.0,
             .bulletHeight = 8.0,
             .maxBullets = 10,
+
+            .enemyBulletChance = 10,
+            .enemyBulletDelay = 10,
+            .enemyBulletWidth = 6.0,
+            .enemyBulletHeight = 6.0,
 
             .gameOverText = "Game Over",
             .gameOverFontSize = 50,

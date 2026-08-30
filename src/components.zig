@@ -130,6 +130,60 @@ pub const Bullet = struct {
     }
 };
 
+pub const EnemyBullet = struct {
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    speed: f32,
+    active: bool,
+
+    pub fn init(x: f32, y: f32, width: f32, height: f32) @This() {
+        return .{
+            .x = x,
+            .y = y,
+            .width = width,
+            .height = height,
+            .speed = 10.0,
+            .active = false,
+        };
+    }
+
+    pub fn reset(self: *@This()) void {
+        self.active = false;
+    }
+
+    pub fn getRect(self: @This()) Rectangle {
+        return Rectangle.init(
+            self.x,
+            self.y,
+            self.width,
+            self.height,
+        );
+    }
+
+    pub fn update(self: *@This()) void {
+        if (self.active) {
+            self.y += self.speed;
+            if (self.y >= self.height + @as(f32, @floatFromInt(rl.getScreenHeight()))) {
+                self.active = false;
+            }
+        }
+    }
+
+    pub fn draw(self: @This()) void {
+        if (self.active) {
+            rl.drawRectangle(
+                @intFromFloat(self.x),
+                @intFromFloat(self.y),
+                @intFromFloat(self.width),
+                @intFromFloat(self.height),
+                .yellow,
+            );
+        }
+    }
+};
+
 pub const Invader = struct {
     initX: f32,
     initY: f32,
