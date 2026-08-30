@@ -2,6 +2,7 @@ pub const GameConfig = struct {
     screenWidth: i32,
     screenHeight: i32,
     padding: f32,
+    gameName: [:0]const u8,
 
     playerStartPosX: f32,
     playerStartPosY: f32,
@@ -37,6 +38,7 @@ pub const GameConfig = struct {
             .screenWidth = sw,
             .screenHeight = sh,
             .padding = padding,
+            .gameName = "Zig Invaders",
 
             .playerStartPosX = (@as(f32, @floatFromInt(sw)) - pw) / 2.0,
             .playerStartPosY = @as(f32, @floatFromInt(sh)) - ph - padding,

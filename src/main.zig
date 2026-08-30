@@ -6,7 +6,15 @@ const conf = @import("config.zig");
 
 const gc: conf.GameConfig = conf.GameConfig.init();
 
+const gameState = enum {
+    Home,
+    Game,
+    GameOver,
+};
+
 pub fn main() void {
+    var state: gameState = .Home;
+
     var invaders_alive: i32 = gc.invaderCols * gc.invaderRows;
     var invader_direction: f32 = 1.0;
     var invader_move_timer: i32 = 0;
@@ -61,130 +69,177 @@ pub fn main() void {
 
         rl.clearBackground(.black);
 
-        if (!game_lost and invaders_alive > 0) {
-            player.update();
-            player.draw();
+        switch (state) {
+            .Home => {
+                rl.drawText(
+                    gc.gameName,
+                    @divTrunc(rl.getScreenWidth(), 2) - @divTrunc(rl.measureText(gc.gameName, gc.gameOverFontSize), 2),
+                    @divTrunc(rl.getScreenHeight(), 2) - @divTrunc(gc.gameOverFontSize, 2) - @as(i32, @intFromFloat(gc.padding)),
+                    gc.gameOverFontSize,
+                    .yellow,
+                );
 
-            if (rl.isKeyPressed(.space)) {
-                for (&bullets) |*bullet| {
-                    if (!bullet.active) {
-                        bullet.x = player.x + (player.width - bullet.width) / 2;
-                        bullet.y = player.y;
-                        bullet.active = true;
-                        break;
-                    }
+                const instructionText: [:0]const u8 = "[space]: shoot, [<-]: move left, [->]: move right, [esc]: quit";
+                rl.drawText(
+                    instructionText,
+                    @divTrunc(rl.getScreenWidth(), 2) - @divTrunc(rl.measureText(instructionText, 20), 2),
+                    @divTrunc(rl.getScreenHeight(), 2) - @divTrunc(20, 2) + 50 - @as(i32, @intFromFloat(gc.padding)),
+                    20,
+                    .gray,
+                );
+
+                if (rl.isKeyPressed(.space)) {
+                    state = .Game;
                 }
-            }
+            },
+            .Game => {
+                player.update();
+                player.draw();
 
-            for (&bullets) |*bullet| {
-                bullet.update();
-                bullet.draw();
-            }
-
-            dy = 0;
-            dx = gc.invaderMoveX * invader_direction;
-            key_invader = invaders[0][gc.invaderCols - 1];
-            val = key_invader.x + key_invader.width + dx;
-
-            if (invader_move_timer == gc.invaderMoveDelay) {
-                invader_move_timer = 0;
-
-                if (val > @as(f32, @floatFromInt(rl.getScreenWidth()))) {
-                    invader_direction *= -1;
-                    dy = gc.invaderMoveY;
-                    dx = 0;
-                }
-
-                key_invader = invaders[0][0];
-                val = key_invader.x + dx;
-                if (val < 0) {
-                    invader_direction *= -1;
-                    dy = gc.invaderMoveY;
-                    dx = 0;
-                }
-            } else {
-                dy = 0;
-                dx = 0;
-                invader_move_timer += 1;
-            }
-
-            for (&invaders) |*rows| {
-                for (rows) |*invader| {
-                    invader.update(dx, 1.5 * dy);
-                    if (!invader.alive) {
-                        continue;
-                    }
-
-                    if (player.getRect().intersect(invader.getRect()) or
-                        invader.y >= @as(f32, @floatFromInt(rl.getScreenHeight())) - gc.padding)
-                    {
-                        game_lost = true;
-                        break;
-                    }
-
+                if (rl.isKeyPressed(.space)) {
                     for (&bullets) |*bullet| {
                         if (!bullet.active) {
-                            continue;
+                            bullet.x = player.x + (player.width - bullet.width) / 2;
+                            bullet.y = player.y;
+                            bullet.active = true;
+                            break;
                         }
-
-                        if (bullet.getRect().intersect(invader.getRect())) {
-                            bullet.active = false;
-                            invader.alive = false;
-
-                            invaders_alive -= 1;
-                            score += 10;
-                        }
-                    }
-
-                    if (invader.alive) {
-                        invader.draw();
                     }
                 }
 
-                if (game_lost) {
-                    break;
+                for (&bullets) |*bullet| {
+                    bullet.update();
+                    bullet.draw();
                 }
-            }
-            var buf: [32]u8 = undefined;
-            const score_text: [:0]const u8 = std.fmt.bufPrintZ(&buf, "Score: {d}", .{score}) catch "Score: --error--";
-            rl.drawText(score_text, 10, rl.getScreenHeight() - 20 - 10, 20, .gray);
-        } else {
-            rl.drawText(
-                gc.gameOverText,
-                @divTrunc(rl.getScreenWidth(), 2) - @divTrunc(rl.measureText(gc.gameOverText, gc.gameOverFontSize), 2),
-                @divTrunc(rl.getScreenHeight(), 2) - @divTrunc(gc.gameOverFontSize, 2) - @as(i32, @intFromFloat(gc.padding)),
-                gc.gameOverFontSize,
-                if (!game_lost) .green else .red,
-            );
 
-            var buf: [32]u8 = undefined;
-            const score_text: [:0]const u8 = std.fmt.bufPrintZ(&buf, "Score: {d}", .{score}) catch "Score: --error--";
-            rl.drawText(
-                score_text,
-                @divTrunc(rl.getScreenWidth(), 2) - @divTrunc(rl.measureText(score_text, 24), 2),
-                @divTrunc(rl.getScreenHeight(), 2) - @divTrunc(24, 2) + 50 - @as(i32, @intFromFloat(gc.padding)),
-                24,
-                if (!game_lost) .green else .red,
-            );
+                dy = 0;
+                dx = gc.invaderMoveX * invader_direction;
+                key_invader = invaders[0][gc.invaderCols - 1];
+                val = key_invader.x + key_invader.width + dx;
 
-            if (rl.isKeyPressed(.r)) {
-                key_invader.reset();
-                invaders_alive = gc.invaderCols * gc.invaderRows;
-                score = 0;
-                game_lost = false;
+                if (invader_move_timer == gc.invaderMoveDelay) {
+                    invader_move_timer = 0;
+
+                    if (val > @as(f32, @floatFromInt(rl.getScreenWidth()))) {
+                        invader_direction *= -1;
+                        dy = gc.invaderMoveY;
+                        dx = 0;
+                    }
+
+                    key_invader = invaders[0][0];
+                    val = key_invader.x + dx;
+                    if (val < 0) {
+                        invader_direction *= -1;
+                        dy = gc.invaderMoveY;
+                        dx = 0;
+                    }
+                } else {
+                    dy = 0;
+                    dx = 0;
+                    invader_move_timer += 1;
+                }
 
                 for (&invaders) |*rows| {
                     for (rows) |*invader| {
-                        invader.reset();
+                        invader.update(dx, 1.5 * dy);
+                        if (!invader.alive) {
+                            continue;
+                        }
+
+                        invader.draw();
+                        if (player.getRect().intersect(invader.getRect()) or
+                            invader.y >= @as(f32, @floatFromInt(rl.getScreenHeight())) - gc.padding)
+                        {
+                            game_lost = true;
+                            state = .GameOver;
+                            break;
+                        }
+
+                        for (&bullets) |*bullet| {
+                            if (!bullet.active) {
+                                continue;
+                            }
+
+                            if (bullet.getRect().intersect(invader.getRect())) {
+                                bullet.active = false;
+                                invader.alive = false;
+
+                                invaders_alive -= 1;
+                                score += 10;
+                            }
+                        }
+                    }
+
+                    if (invaders_alive == 0) {
+                        state = .GameOver;
                     }
                 }
 
-                player.reset(gc.playerStartPosX, gc.playerStartPosY);
+                var buf: [32]u8 = undefined;
+                const score_text: [:0]const u8 = std.fmt.bufPrintSentinel(&buf, "Score: {d}", .{score}, 0) catch "Score: --error--";
+                rl.drawText(score_text, 10, rl.getScreenHeight() - 20 - 10, 20, .gray);
+            },
+            .GameOver => {
+                rl.drawText(
+                    gc.gameOverText,
+                    @divTrunc(rl.getScreenWidth(), 2) - @divTrunc(rl.measureText(gc.gameOverText, gc.gameOverFontSize), 2),
+                    @divTrunc(rl.getScreenHeight(), 2) - @divTrunc(gc.gameOverFontSize, 2) - @as(i32, @intFromFloat(gc.padding)),
+                    gc.gameOverFontSize,
+                    if (!game_lost) .green else .red,
+                );
 
-                for (&bullets) |*bullet| {
-                    bullet.reset();
+                var buf: [32]u8 = undefined;
+                const score_text: [:0]const u8 = std.fmt.bufPrintSentinel(&buf, "Score: {d}", .{score}, 0) catch "Score: --error--";
+                rl.drawText(
+                    score_text,
+                    @divTrunc(rl.getScreenWidth(), 2) - @divTrunc(rl.measureText(score_text, 24), 2),
+                    @divTrunc(rl.getScreenHeight(), 2) - @divTrunc(24, 2) + 50 - @as(i32, @intFromFloat(gc.padding)),
+                    24,
+                    if (!game_lost) .green else .red,
+                );
+
+                if (rl.isKeyPressed(.r)) {
+                    invaders_alive = gc.invaderCols * gc.invaderRows;
+                    score = 0;
+                    game_lost = false;
+                    invader_direction = 1;
+
+                    player.reset(gc.playerStartPosX, gc.playerStartPosY);
+                    key_invader.reset();
+
+                    for (&invaders) |*rows| {
+                        for (rows) |*invader| {
+                            invader.reset();
+                        }
+                    }
+
+                    for (&bullets) |*bullet| {
+                        bullet.reset();
+                    }
+
+                    state = .Game;
+                } else if (rl.isKeyPressed(.q)) {
+                    invaders_alive = gc.invaderCols * gc.invaderRows;
+                    score = 0;
+                    game_lost = false;
+                    invader_direction = 1;
+
+                    player.reset(gc.playerStartPosX, gc.playerStartPosY);
+                    key_invader.reset();
+
+                    for (&invaders) |*rows| {
+                        for (rows) |*invader| {
+                            invader.reset();
+                        }
+                    }
+
+                    for (&bullets) |*bullet| {
+                        bullet.reset();
+                    }
+
+                    state = .Home;
                 }
-            }
+            },
         }
     }
 }
