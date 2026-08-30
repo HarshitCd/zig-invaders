@@ -3,7 +3,7 @@ const conf = @import("game_config.zig");
 
 const gc = conf.GameConfig.init();
 
-pub const GameLogic = struct {
+pub const GameSetup = struct {
     score: u32,
     game_lost: bool,
 

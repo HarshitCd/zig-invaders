@@ -54,8 +54,8 @@ pub const GameConfig = struct {
             .bulletHeight = 8.0,
             .maxBullets = 10,
 
-            .enemyBulletChance = 10,
-            .enemyBulletDelay = 10,
+            .enemyBulletChance = 15,
+            .enemyBulletDelay = 15,
             .enemyBulletWidth = 6.0,
             .enemyBulletHeight = 6.0,
 

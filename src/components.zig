@@ -144,7 +144,7 @@ pub const EnemyBullet = struct {
             .y = y,
             .width = width,
             .height = height,
-            .speed = 10.0,
+            .speed = 6.0,
             .active = false,
         };
     }
